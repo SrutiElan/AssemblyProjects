@@ -13,7 +13,7 @@ std::string changeOfBase(int oldBase, int newBase, std::string oldNumber ){
     //return remainders[i=size-1 -> i = 0] as digits
     int sumBase10 = 0;
     int digit;
-    for (int i = 0; i< oldNumber.length(); i++){
+    for (std::string::size_type i = 0; i < oldNumber.length(); i++) {
         if (isalpha(oldNumber[i])){
             digit = toupper(oldNumber[i]) - 'A' + 10;
         }
