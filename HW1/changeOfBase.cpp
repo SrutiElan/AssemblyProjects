@@ -1,6 +1,9 @@
 #include <iostream>
 #include <string>
 #include <cctype>
+#include <cmath>  // for pow function
+#include <vector>  // for std::vector
+
 
 std::string changeOfBase(int oldBase, int newBase, std::string oldNumber ){
     //base 10: sum = oldNumber digit i * oldBase^i 
