@@ -2,16 +2,26 @@
 #include <string>
 #include <cctype>
 #include <cmath>  // for pow function
-#include <vector>  // for std::vector
+#include <algorithm> 
 
-
+char intToChar(int num) {
+    char digit;
+    if (num >= 0 && num <= 9){
+            digit=('0'+ num);
+        }
+        else {
+            digit= (num - 10 + 'A');
+        }
+    return digit;
+}   
 std::string changeOfBase(int oldBase, int newBase, std::string oldNumber ){
+
     //base 10: sum = oldNumber digit i * oldBase^i 
     //quotient = sum/newBase
     //remainders[i] = quotient - quotient(as an int??)
     //keep going until quotient(as an int) = 0
     //return remainders[i=size-1 -> i = 0] as digits
-    float sumBase10 = 0;
+    long long sumBase10 = 0;
     int digit = '\0';
     for (int i = oldNumber.length()-1; i >=0; i--) {
         if (isalpha(oldNumber[i])){
@@ -22,29 +32,20 @@ std::string changeOfBase(int oldBase, int newBase, std::string oldNumber ){
         }
         sumBase10 += digit* pow(oldBase,(oldNumber.length()-1)-i);
     }
-    float quotient = sumBase10;
-    std::vector<int> remainders;
-    while (int(quotient) != 0){
+    long long quotient = sumBase10;
+    std::string newNumber = "";
+    while (quotient != 0){
+        int rem = (quotient % newBase) ;
+        char remChar = intToChar(rem);
+        newNumber += remChar;
         quotient = quotient/newBase;
-        int quotientAsInt = int(quotient);
-        int remainder = fmod(quotient, newBase);
-        remainders.push_back(remainder);
-    }
-    std::string newNumber = "\0";
-    
-    for (std::vector<int>::iterator it = remainders.begin(); it!=remainders.end(); it++){
-        // For values between 0 and 9, append '0' + remainder. 
-        //For values between 10 and 35, append 'A' + (remainder - 10).
-        if (*it > 0 || *it < 9){
-            newNumber+=('0'+ *it);
-        }
-        else {
-            newNumber += (*it - 10 + 'A');
-        }
-    }
 
+    }
+    reverse(newNumber.begin(), newNumber.end());
     return newNumber;
 }
+
+
 
 int main(int argc, char* argv[]) {
     int oldBase;
@@ -74,5 +75,5 @@ int main(int argc, char* argv[]) {
     }
     newNumber = changeOfBase(oldBase, newBase, oldNumber);
 
-    std::cout<<oldNumber <<" base " << oldBase <<" is " + newNumber <<" base " <<newBase;
+    std::cout<<oldNumber <<" base " << oldBase <<" is " + newNumber <<" base " <<newBase << "\n";
 };
