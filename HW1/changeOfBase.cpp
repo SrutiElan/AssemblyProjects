@@ -11,22 +11,24 @@ std::string changeOfBase(int oldBase, int newBase, std::string oldNumber ){
     //remainders[i] = quotient - quotient(as an int??)
     //keep going until quotient(as an int) = 0
     //return remainders[i=size-1 -> i = 0] as digits
-    int sumBase10 = 0;
-    int digit;
-    for (std::string::size_type i = 0; i < oldNumber.length(); i++) {
+    float sumBase10 = 0;
+    int digit = '\0';
+    for (int i = oldNumber.length()-1; i >=0; i--) {
         if (isalpha(oldNumber[i])){
             digit = toupper(oldNumber[i]) - 'A' + 10;
         }
         else if (isdigit(oldNumber[i])){
-            digit=oldNumber[i];
+            digit=oldNumber[i] - '0';
         }
-        sumBase10 = digit* pow(oldBase,i);
+        sumBase10 += digit* pow(oldBase,(oldNumber.length()-1)-i);
     }
-    float quotient;
+    float quotient = sumBase10;
     std::vector<int> remainders;
     while (int(quotient) != 0){
-        quotient = sumBase10/newBase;
-        remainders.push_back(quotient-int(quotient));
+        quotient = quotient/newBase;
+        int quotientAsInt = int(quotient);
+        int remainder = fmod(quotient, newBase);
+        remainders.push_back(remainder);
     }
     std::string newNumber = "\0";
     
