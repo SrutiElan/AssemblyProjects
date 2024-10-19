@@ -4,6 +4,8 @@
 #include <cmath>  // for pow function
 #include <algorithm> 
 
+#include "changeOfBase.h"
+
 char intToChar(int num) {
     char digit;
     if (num >= 0 && num <= 9){
