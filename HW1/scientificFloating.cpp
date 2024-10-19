@@ -103,7 +103,7 @@ string binaryToSci(float f) {
     int unBiasedExponent = exponent-127;
     
     string binary = (sign == 1 ? "-" : "");
-    binary = "1." + toBinaryString(mantissa, 23) + "E" + to_string(unBiasedExponent);
+    binary += "1." + toBinaryString(mantissa, 23) + "E" + to_string(unBiasedExponent);
 
     return binary;
     
