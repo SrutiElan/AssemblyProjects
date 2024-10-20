@@ -91,6 +91,10 @@ string toBinaryString(int value, int bits){
         char temp = (value>>i) & 1;
         binary += temp ? '1' : '0';
     }
+
+    while (!binary.empty() && binary.back() == '0'){
+        binary.pop_back();
+    }
     return binary;
 
 }
