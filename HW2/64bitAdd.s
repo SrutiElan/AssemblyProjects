@@ -29,25 +29,21 @@ Sources used:
 
 .data
 
-num1: .quad 0x1234567890ABCDEF
+num1: .quad 0x0000000000000000
 num2: .quad 0x0000000000000000
 
 .text
 //1) use movl to move the lower 32 bit part of num1 to EAX, and higher 32 bit part to EDX
 
 _start: 
-    movl num1, %eax        # move lower 32 bits of num1 into EAX
-    movl num2, %ebx        # move lower 32 bits of num2 into EBX
-    addl %ebx, %eax        # add them
+    movl num1+4, %eax        # move lower 32 bits of num1 into EAX
+    movl num2+4, %ebx        # move lower 32 bits of num2 into EBX
+    addl %ebx, %eax        # EAX = EBX + EAX
 
     # save the carry flag and load the upper 32 bits
-    movl $0, %ebx          # Clear EBX register for reuse
-    movl num1+4, %ebx      #  upper 32 bits of num1 into EBX
-    movl num2+4, %ecx      #  upper 32 bits of num2 into ECX
-    adcl %ecx, %ebx        # EBX = EBX + ECX , EBX = EBX + Carry from prev 
+    movl num1, %edx      #  upper 32 bits of num1 into EDX
+    movl num2, %ecx      #  upper 32 bits of num2 into ECX
+    adcl %ecx, %edx        # EDX = EDX + ECX , EDX = EDX + Carry from prev 
 
-    # Store results in EAX (lower 32) and EDX (upper 32)
-    movl %eax, %eax        # Lower 32 bits of the sum in EAX
-    movl %ebx, %edx        # Upper 32 bits of the sum in EDX
 done:
     nop
