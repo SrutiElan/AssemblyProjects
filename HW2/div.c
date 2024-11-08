@@ -19,15 +19,18 @@ void divide(unsigned int dividend, unsigned int divisor) {
         // subtract quotient - divisor * multiple = remainder
 
     unsigned int tempDivisor = divisor;
-    // unsigned int multiple = 0;
 
-    while ((tempDivisor << 1) <= dividend) {
+    /**find the largest multiple of divisor that can go into the dividend. 
+    for large dividends, tempDivisor might keep shifting to the left so much 
+    that it overflows 32 bits.
+    (tempDivisor << 1) > tempDivisor checks to make sure that if that sort of wrapping happens
+    to exit  **/
+    while ((tempDivisor << 1) > tempDivisor && (tempDivisor << 1) <= dividend) {
         tempDivisor <<= 1;
-        // multiple++;
+
     }
 
-    // for (; multiple < 32; multiple--) {
-        while (tempDivisor >= divisor) {
+    while (tempDivisor >= divisor) {
 
         if (remainder >= tempDivisor){
             remainder -= tempDivisor;
