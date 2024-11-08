@@ -25,7 +25,7 @@ void divide(unsigned int dividend, unsigned int divisor) {
     that it overflows 32 bits.
     (tempDivisor << 1) > tempDivisor checks to make sure that if that sort of wrapping happens
     to exit  **/
-    while ((tempDivisor << 1) > tempDivisor && (tempDivisor << 1) <= dividend) {
+    while (((tempDivisor << 1) > tempDivisor) && (tempDivisor << 1) <= dividend) {
         tempDivisor <<= 1;
 
     }
@@ -50,8 +50,8 @@ int main(int argc, char* argv[]) {
         printf("Need exactly 3 arguments");
         return 1;
     }
-    unsigned int dividend = atoi(argv[1]);
-    unsigned int divisor = atoi(argv[2]);
+    unsigned int dividend = (unsigned int)strtoul(argv[1], NULL, 10);
+    unsigned int divisor = (unsigned int)strtoul(argv[2], NULL, 10);
 
     divide(dividend, divisor);
 }
