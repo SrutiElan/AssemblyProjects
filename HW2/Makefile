@@ -1,5 +1,5 @@
 # List of output programs
-TARGETS = 64bitAdd.out
+TARGETS = divAssembly.out
 
 # All target
 all: $(TARGETS)
@@ -7,11 +7,11 @@ all: $(TARGETS)
 #sudo apt-get -y install gcc-multilib g++-multilib
 
 # Rules for 64bitAdd
-64bitAdd.out: 64bitAdd.o
-	ld -melf_x86_64 -o 64bitAdd.out 64bitAdd.o
+divAssembly.out: divAssembly.o
+	ld -melf_x86_64 -o divAssembly.out divAssembly.o
 
-64bitAdd.o: 64bitAdd.s
-	as --gstabs -o 64bitAdd.o 64bitAdd.s
+divAssembly.o: divAssembly.s
+	as --gstabs -o divAssembly.o divAssembly.s
 	
 clean:
 	rm -f $(TARGETS) *.o

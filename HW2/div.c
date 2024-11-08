@@ -2,6 +2,10 @@
 #include <string.h>
 #include <stdlib.h>
 
+/**
+ * sources: chatgpt for errors and debugging
+ * https://www.exploringbinary.com/binary-division/
+ */
 void divide(unsigned int dividend, unsigned int divisor) {
     unsigned int quotient = 0;
     unsigned int remainder = dividend;
