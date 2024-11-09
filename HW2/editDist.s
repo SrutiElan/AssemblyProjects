@@ -4,14 +4,18 @@
 
 
 string1:
-    .space 101
+    .string "kitten"
 string2:     
-    .space 101             # Reserve 101 bytes for string2 (uninitialized)
+    .string "sitting"       # Reserve 101 bytes for string2 (uninitialized)
 oldDist:     
     .space 404            # Reserve 101 bytes for oldDist (uninitialized)
 curDist:     
     .space 404    
-	
+oldDist_ptr:
+    .long oldDist         # Pointer to the base address of oldDist
+curDist_ptr:
+    .long curDist         # Pointer to the base address of curDist
+
 word1_len: 
     .long 0
 
@@ -106,8 +110,7 @@ _start:
 
     # main loop through string1 chracteres
 
-    movl word1_len, %ebx # ebx = word1_len
-    incl %ebx # ebx = word1_len + 1
+
     movl $1, %ecx # i = 1
     /**
     word2_len + 1 is in eax but can use 
@@ -137,7 +140,7 @@ main_loop:
     movl %ecx, curDist # curDist[0] = i;
 
     movl $1, %edx # edx = 1
-    movl %edx, j # j = edx
+    movl %edx, j # j = edx = 1
         inner_loop:
         # redefining EAX word2_len+1 
         movl word2_len, %eax # eax = word2_len
@@ -159,10 +162,10 @@ main_loop:
             cmpb %al, %bl            # Compare characters
             jne different_chars      # Jump if characters are different
 
-# Characters are the same
-movl oldDist(,%edi, 4), %eax # Load oldDist[j-1]
-movl %eax, curDist(,%edx, 4) # Set curDist[j] = oldDist[j-1]
-jmp update_inner
+            # Characters are the same
+            movl oldDist(,%edi, 4), %eax # Load oldDist[j-1]
+            movl %eax, curDist(,%edx, 4) # Set curDist[j] = oldDist[j-1]
+            jmp update_inner
             
             different_chars:
             /** 
@@ -179,21 +182,27 @@ jmp update_inner
             call min # answer wil be in eax
 
             incl %eax # eax += 1
-            movl %edx, j # j = edx
 
             movl %eax, curDist(,%edx, 4) # curDist[j] = result
 
         update_inner:
+        movl j, %edx # edx = j in case edx got changed
         incl %edx # j++
-        
+        movl %edx, j # j = edx
         jmp inner_loop
         inner_done:
 
     # swap(&oldDist, &curDist);
-    lea oldDist, %eax   # Load address of oldDist into %eax
-    lea curDist, %ebx   # Load address of curDist into %ebx
-    call swap           # Call the swap function to swap the pointers
+   
+  # Swap oldDist and curDist pointers using registers
+    lea oldDist, %eax      # Load address of oldDist into %eax
+    lea curDist, %ebx      # Load address of curDist into %ebx
 
+    # Perform the swap
+    xchg %eax, %ebx        # Swap values in %eax and %ebx
+
+    movl %eax, oldDist     # Update oldDist with new address (previously curDist)
+    movl %ebx, curDist     # Update curDist with new address (previously oldDist)
 
     movl i, %ecx # revive i's value %ecx = i
     incl %ecx # i++
