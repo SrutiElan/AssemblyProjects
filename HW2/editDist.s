@@ -4,9 +4,9 @@
 
 
 string1:
-    .string "kitten"
+    .space 101
 string2:     
-    .string "sitting"              # Reserve 101 bytes for string2 (uninitialized)
+    .space 101             # Reserve 101 bytes for string2 (uninitialized)
 oldDist:     
     .space 404            # Reserve 101 bytes for oldDist (uninitialized)
 curDist:     
