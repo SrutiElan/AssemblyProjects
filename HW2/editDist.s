@@ -4,9 +4,9 @@
 
 
 string1:
-    .string "kitten"
+    .string "itvXphUxr8hBxG6zXcd1skWvFmUQg4kSByci0NGn8CAQ435Vq5ZhwTdo7"
 string2:     
-    .string "sitting"       # Reserve 101 bytes for string2 (uninitialized)
+    .string "ZlQ0Entcl8kMFnDInF6gCd0ZquORmX31BdKFXl4j2g9nP"       # Reserve 101 bytes for string2 (uninitialized)
 oldDist:     
     .space 404            # Reserve 101 bytes for oldDist (uninitialized)
 curDist:     
@@ -20,6 +20,9 @@ word1_len:
     .long 0
 
 word2_len:
+    .long 0
+
+word2_len_1:
     .long 0
 
 i:
@@ -39,17 +42,23 @@ min_end:
     ret
 
 swap: 
-    # Function: swap(int** a, int** b)
-    # %eax = address of oldDist (pointer to a)
-    # %ebx = address of curDist (pointer to b)
-    
-    movl (%eax), %ecx      # Load *a (oldDist address) into %ecx
-    movl (%ebx), %edx      # Load *b (curDist address) into %edx
-    
-    movl %edx, (%eax)      # *a = *b (store curDist address into oldDist)
-    movl %ecx, (%ebx)      # *b = *a (store oldDist address into curDist)
+    # can use eax, ebx, ecx, edx
+    movl $0, %ecx # ecx = i = 0
 
-    ret                    # Return to the caller
+        loop_start:
+            cmpl $101, %ecx  # i - 101 >=0
+            jge loop_end
+
+            # swap the values of the arrays
+            movl oldDist(, %ecx, 4), %eax # eax = oldDist[i]
+            movl curDist(, %ecx, 4), %ebx # ebx = curDist[i]
+
+            movl %eax, curDist(, %ecx, 4) # oldDist[i] = eax
+            movl %ebx, oldDist(, %ecx, 4) # curDist[i] = ebx
+            incl %ecx
+            jmp loop_start
+        loop_end:
+            ret                    # Return to the caller
 
 strlen_reg:
     # str should be passed through %eax
@@ -194,7 +203,9 @@ main_loop:
 
     # swap(&oldDist, &curDist);
    
-  # Swap oldDist and curDist pointers using registers
+  /** 
+    # Swap oldDist and curDist old way (does not work)
+
     lea oldDist, %eax      # Load address of oldDist into %eax
     lea curDist, %ebx      # Load address of curDist into %ebx
 
@@ -203,6 +214,10 @@ main_loop:
 
     movl %eax, oldDist     # Update oldDist with new address (previously curDist)
     movl %ebx, curDist     # Update curDist with new address (previously oldDist)
+*/
+    # swap each element (ik what an inefficient way but i need to submit this hw t-t)
+    
+    call swap
 
     movl i, %ecx # revive i's value %ecx = i
     incl %ecx # i++
