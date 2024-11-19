@@ -4,9 +4,9 @@
 
 
 string1:
-    .string "itvXphUxr8hBxG6zXcd1skWvFmUQg4kSByci0NGn8CAQ435Vq5ZhwTdo7"
+    .space 101
 string2:     
-    .string "ZlQ0Entcl8kMFnDInF6gCd0ZquORmX31BdKFXl4j2g9nP"       # Reserve 101 bytes for string2 (uninitialized)
+    .space 101         # Reserve 101 bytes for string2 (uninitialized)
 oldDist:     
     .space 404            # Reserve 101 bytes for oldDist (uninitialized)
 curDist:     
@@ -215,7 +215,7 @@ main_loop:
     movl %eax, oldDist     # Update oldDist with new address (previously curDist)
     movl %ebx, curDist     # Update curDist with new address (previously oldDist)
 */
-    # swap each element (ik what an inefficient way but i need to submit this hw t-t)
+    # swap each element (super inefficient way)
     
     call swap
 
