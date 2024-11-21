@@ -8,13 +8,27 @@ unsigned int knapsack(int* weights, unsigned int* values, unsigned int num_items
 
  */
 .text
+
+# unsigned int max(unsigned int a, unsigned int b)
+max: 
+    # eax has a 
+    # edx has b
+    # return a > b ? a : b;
+    # if a - b > 0 return a if <= 0 then return b
+    cmpl %edx, %eax # a - b
+    ja max_end
+    movl %edx, %eax # eax = b
+max_end:
+    ret 
+
+
 knapsack:
 /*
-ebp + 6: weights
-ebp + 5: values
+ebp + 6: cur_value
+ebp + 5: capacity
 ebp + 4: num_items
-ebp + 3: capacity
-ebp + 2: cur_value
+ebp + 3: values
+ebp + 2: weights
 ebp + 1: ret
 ebp : old ebp
 ebp - 1: i
@@ -30,17 +44,17 @@ prologue_start:
     movl %esp, %ebp # establlish stack frame
 
     .equ num_locals, 2
-    .equ used_ebx, 0
+    .equ used_ebx, 1
     .equ used_esi, 1
     .equ used_edi, 1
     .equ num_saved_regs, (used_ebx + used_edi + used_esi)
 	subl $(num_locals + num_saved_regs) * ws, %esp # make space for locals and saved regs
     
-    .equ cur_value, (2*ws)
-    .equ capacity, (3*ws)
+    .equ cur_value, (6*ws)
+    .equ capacity, (5*ws)
     .equ num_items, (4*ws)
-    .equ values, (5*ws)
-    .equ weights, (6*ws)
+    .equ values, (3*ws)
+    .equ weights, (2*ws)
 	.equ i, (-1 * ws)
     .equ best_value, (-2 * ws)
 
@@ -48,7 +62,7 @@ prologue_start:
     .equ old_edi, (-4 * ws) # (%ebp)
 	.equ old_esi, (-5 * ws) # (%ebp)
 
-    # save any calle saved regs
+    # save any callee saved regs
     movl %ebx, old_ebx(%ebp)
 	movl %edi, old_edi(%ebp)
 	movl %esi, old_esi(%ebp)
@@ -58,11 +72,11 @@ prologue_end:
     # ebx will be best_value
 
     # unsigned int i;
-    @ movl i(%ebp), %edi
+    # @ movl i(%ebp), %edi
     movl $0, %edi
     # unsigned int best_value = cur_value;
     movl cur_value(%ebp), %ebx
-    @ movl %ebx, best_value(%ebp)
+    movl %ebx, best_value(%ebp)
 
     # for(i = 0; i < num_items; i++)
     for_loop_start:
@@ -85,10 +99,60 @@ prologue_end:
             
             /*  knapsack(weights + i + 1, values + i + 1, num_items - i - 1, 
                      capacity - weights[i], cur_value + values[i]) */
+            
+            # push cur_value + values [i] 
+            movl values(%ebp), %ecx # ecx = values
+            movl (%ecx, %edi, ws), %ecx # ecx = values[i]
+            addl cur_value(%ebp), %ecx # ecx = cur_value + values[i]
+            push %ecx # put arg on stack
 
+            # push capacity - weights[i]
+            movl weights(%ebp), %ecx # ecx = Weights
+            movl (%ecx, %edi, ws), %ecx # ecx = weights[i]
+            movl capacity(%ebp), %edx    # edx = capacity
+            subl %ecx, %edx # edx = capacity - weights[i]
+            push %edx # put arg on stack
+
+            # push num_items - i - 1
+            movl num_items(%ebp), %ecx # ecx = num_items
+            subl %edi, %ecx # ecx = num_items - i
+            decl %ecx # ecx = num_items - i -1
+            push %ecx # put arg on stack
+
+            # push values + i + 1
+            movl values(%ebp), %ecx # ecx = values
+            leal 1*ws(%ecx, %edi, ws), %ecx # ecx = values + i + 1
+            push %ecx
+
+            # push weights + i + 1
+            movl weights(%ebp), %ecx # ecx = weights
+            leal 1*ws(%ecx, %edi, ws), %ecx # ecx = weights + i + 1
+            push %ecx
+            call knapsack
+
+            addl $5*ws, %esp # clear function arguments
+            # eax = knapsack(...)
+
+            /* best_value = max(best_value, knapsack(...)); */
+            movl %eax, %edx # edx = knapsack (...)
+            movl best_value(%ebp), %eax # eax = best_value
+            call max
+            movl %eax, best_value(%ebp) # Update best_value
+            # eax = best_value
         if_end:
 
         incl %edi # i++
         jmp for_loop_start
     for_loop_end:
+        movl best_value(%ebp), %eax
+epilogue_start:
+    # restore saved registers
+    movl old_edi(%ebp), %edi
+	movl old_esi(%ebp), %esi
+    movl old_ebx(%ebp), %ebx
 
+    movl %ebp, %esp # clear space for locals, args, and scratch 
+    pop %ebp
+    ret
+
+epilogue_end:
