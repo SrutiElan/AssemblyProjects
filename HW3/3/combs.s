@@ -2,67 +2,20 @@
 .global get_combs, combinationUtil
 .equ ws, 4
 
-
-/*
-void combinationUtil(int items[], int len, int k, int index, int data[], int i, int** result, int* comb_index) {
-    // Base case: If the current combination is of size r, store it in the result itemsay
-    if (index == k) {
-        for (int j = 0; j < k; j++) {
-            result[*comb_index][j] = data[j];
-        }
-        (*comb_index)++;
-        return;
-    }
-
-    // If no more elements are left
-    if (i >= len)
-        return;
-
-    // Include current element
-    data[index] = items[i];
-    combinationUtil(items, len, k, index + 1, data, i + 1, result, comb_index);
-
-    // Exclude current element
-    combinationUtil(items, len, k, index, data, i + 1, result, comb_index);
-}
-
-int** get_combs(int* items, int k, int len) {
-    int numCombs = num_combs(len, k);
-
-    // Allocate memory for storing the combinations
-    int** result = (int**)malloc(numCombs * sizeof(int*));
-    for (int i = 0; i < numCombs; i++) {
-        result[i] = (int*)malloc(k * sizeof(int));
-    }
-
-    int* currComb = (int*)malloc(k * sizeof(int));  // Array to store current combination
-    int comb_index = 0;  // To track the row in result
-
-    // Call the recursive helper function
-    combinationUtil(items, len, k, 0, currComb, 0, result, &comb_index);
-
-    free(currComb);  // Free the temporary combination array
-    return result;  // Return the result array
-}
-
-
- */
-
-
 .text
 
 get_combs:
 /*
 ebp + 4: len
 ebp + 3: k
-ebp + 2: items
+ebp + 2: items # p *((int*)$ebp + 2)[0]@((int*)$ebp)[4]
 ebp + 1: ret
 ebp : old ebp
 ebp - 1: numCombs
-ebp - 2: result
+ebp - 2: result  p *((int*)$ebp)[-2]
 ebp - 3: i
 ebp - 4: currComb
-ebp - 5: combIndex
+ebp - 5: comb_Index
  */
 
 prologue_start:
@@ -83,7 +36,7 @@ prologue_start:
     .equ result, (-2*ws)
     .equ i, (-3*ws)
     .equ currComb, (-4*ws)
-    .equ combIndex, (-5*ws)
+    .equ comb_Index, (-5*ws)
 
     .equ old_edi, (-6 * ws) # (%ebp)
     # .equ old_ebx, (-7 * ws) # (%ebp)
@@ -155,16 +108,18 @@ prologue_end:
     push %ecx
     push result(%ebp)
     push $0
+    push currComb(%ebp)
+    push $0
     push k(%ebp)
     push len(%ebp)
     push items(%ebp)
 
     call combinationUtil
-    addl $6*ws, %esp # clear function args
+    addl $8*ws, %esp # clear function args
     # result is in eax
     movl %eax, result(%ebp) # result = eax
-    movl result(%ebp), %eax # eax = result (do i need this line?)
-
+    # movl result(%ebp), %eax # eax = result (do i need this line?)
+  leal result(%ebp), %eax  # eax = base address of result
 epilogue_start:
     # restore saved regs
     movl old_edi(%ebp), %edi
@@ -173,21 +128,23 @@ epilogue_start:
 
     movl %ebp, %esp # clear space for locals, args, and scratch 
     pop %ebp 
-    ret 
+    ret
 epilogue_end:
 
-
+/*
+printing data[index] : p *((int*)$ebp[6+((int*)$ebp)[5]])
+ */
 
 combinationUtil:
 
-    # ebp + 9: comb_index
-    # ebp + 8: result
-    # ebp + 7: i
-    # ebp + 6: data
-    # ebp + 5: index
-    # ebp + 4: k
-    # ebp + 3: len
-    # ebp + 2: items
+    # ebp + 9: &comb_index p *((int*)$ebp)[9]
+    # ebp + 8: result p *(*((int*)$ebp)[8])
+    # ebp + 7: i  p ((int*)$ebp)[7]
+    # ebp + 6: data p *((int*)$ebp)[6]
+    # ebp + 5: index p ((int*)$ebp)[5]
+    # ebp + 4: k p ((int*)$ebp)[4]
+    # ebp + 3: len p ((int*)$ebp)[3]
+    # ebp + 2: items p *((int*)$ebp)[2]
     # ebp + 1: ret
     # ebp : old_ebp
     # ebp - 1: j
@@ -247,10 +204,10 @@ combination_util_prologue_end:
 
             # *(result + *comb_index)
             movl comb_index(%ebp), %edx # edx = address of comb_index
-movl (%edx), %edx           # edx = *comb_index
-movl result(%ebp), %eax     # eax = base address of result
-movl (%eax, %edx, ws), %eax # eax = result[*comb_index] (address of the row)
-movl %ecx, (%eax, %ebx, ws) # *(result[*comb_index] + j) = data[j]
+            movl (%edx), %edx           # edx = *comb_index
+            movl result(%ebp), %eax     # eax = base address of result
+            movl (%eax, %edx, ws), %eax # eax = result[*comb_index] (address of the row)
+            movl %ecx, (%eax, %ebx, ws) # *(result[*comb_index] + j) = data[j]
 
         
             incl %ebx # j++
@@ -280,9 +237,7 @@ movl %ecx, (%eax, %ebx, ws) # *(result[*comb_index] + j) = data[j]
     # data[index]
     movl data(%ebp), %eax # eax = data[0]
     movl index(%ebp), %edx # edx = index
-    movl (%eax, %edx, ws), %eax # eax = data[index]
-
-    movl %ecx, (%eax) # data[index] = items[i]
+    movl %ecx, (%eax, %edx, ws)  # data[index] = items[i]
 
     # combinationUtil(items, len, k, index + 1, data, i + 1, result, comb_index);
     push comb_index(%ebp)

@@ -31,7 +31,8 @@ int num_combs(int n, int k){
 
 void print_mat(int** mat, int num_rows, int num_cols){
   int i,j;
-  
+  printf("Address of mat in print_mat: %p\n", (void*)mat);
+
   for(i = 0; i < num_rows; i++){
     for( j = 0; j < num_cols; j++){
       printf("%d ", mat[i][j]); 
@@ -69,6 +70,8 @@ int main(){
   scanf("%d", &k);
   
   combs = get_combs(items, k, num_items);
+  printf("Address of combs in main: %p\n", (void*)combs);
+
   print_mat(combs,num_combs(num_items, k) ,k);
   free(items);
   free_mat(combs,num_combs(num_items, k), k);
