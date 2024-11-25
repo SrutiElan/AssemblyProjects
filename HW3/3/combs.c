@@ -2,8 +2,10 @@
 #include <stdlib.h>
 #include "combs.h"
 
-
-
+/*
+result: p result[0][0]@8 for elements
+        p *result@4
+*/
 void combinationUtil(int items[], int len, int k, int index, int data[], int i, int** result, int* comb_index) {
     // Base case: If the current combination is of size k, store it in the result array
     if (index == k) {

@@ -12,9 +12,9 @@ ebp + 2: items # p *((int*)$ebp + 2)[0]@((int*)$ebp)[4]
 ebp + 1: ret
 ebp : old ebp
 ebp - 1: numCombs
-ebp - 2: result  p *((int*)$ebp)[-2]
+ebp - 2: result  p *((int*)$ebp)[-2], p ((int**)$ebp)[-2][0]@4
 ebp - 3: i
-ebp - 4: currComb
+ebp - 4: currComb p ((int*)$ebp)[-4]@4
 ebp - 5: comb_Index
  */
 
@@ -52,10 +52,8 @@ prologue_end:
     # edi will be i
 
     # int numCombs = num_combs(len, k);
-    movl k(%ebp), %ecx
-    push %ecx 
-    movl len(%ebp), %ecx
-    push %ecx
+    pushl k(%ebp)
+    pushl len(%ebp)
     call num_combs
     addl $2*ws, %esp # clear function args
     # result is in eax
@@ -138,13 +136,13 @@ printing data[index] : p *((int*)$ebp[6+((int*)$ebp)[5]])
 combinationUtil:
 
     # ebp + 9: &comb_index p *((int*)$ebp)[9]
-    # ebp + 8: result p *(*((int*)$ebp)[8])
+    # ebp + 8: result p ((int**)$ebp)[8][0]@((int*)$ebp)[4]*4 , p/d ((int*)(((int*)$ebp)[8]))[0]@4
     # ebp + 7: i  p ((int*)$ebp)[7]
     # ebp + 6: data p *((int*)$ebp)[6]
     # ebp + 5: index p ((int*)$ebp)[5]
     # ebp + 4: k p ((int*)$ebp)[4]
     # ebp + 3: len p ((int*)$ebp)[3]
-    # ebp + 2: items p *((int*)$ebp)[2]
+    # ebp + 2: items p *((int*)$ebp)[2]@((int*)$ebp)[3]
     # ebp + 1: ret
     # ebp : old_ebp
     # ebp - 1: j
