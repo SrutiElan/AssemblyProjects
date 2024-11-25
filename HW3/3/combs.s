@@ -15,7 +15,7 @@ ebp - 1: numCombs
 ebp - 2: result  p *((int*)$ebp)[-2], p ((int**)$ebp)[-2][0]@4
 ebp - 3: i
 ebp - 4: currComb p ((int*)$ebp)[-4]@4
-ebp - 5: comb_Index
+ebp - 5: comb_index
  */
 
 prologue_start:
@@ -36,7 +36,7 @@ prologue_start:
     .equ result, (-2*ws)
     .equ i, (-3*ws)
     .equ currComb, (-4*ws)
-    .equ comb_Index, (-5*ws)
+    .equ comb_index, (-5*ws)
 
     .equ old_edi, (-6 * ws) # (%ebp)
     # .equ old_ebx, (-7 * ws) # (%ebp)
@@ -115,9 +115,8 @@ prologue_end:
     call combinationUtil
     addl $8*ws, %esp # clear function args
     # result is in eax
-    movl %eax, result(%ebp) # result = eax
-    # movl result(%ebp), %eax # eax = result (do i need this line?)
-  leal result(%ebp), %eax  # eax = base address of result
+    movl result(%ebp), %eax # result = eax
+    
 epilogue_start:
     # restore saved regs
     movl old_edi(%ebp), %edi
