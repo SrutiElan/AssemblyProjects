@@ -126,7 +126,7 @@ prologue_end:
 
             # push weights + i + 1
             movl weights(%ebp), %ecx # ecx = weights
-            leal 1*ws(%ecx, %edi, ws), %ecx # ecx = weights + i + 1
+            leal $1*ws(%ecx, %edi, ws), %ecx # ecx = weights + i + 1
             push %ecx
             call knapsack
 
