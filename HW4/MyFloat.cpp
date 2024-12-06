@@ -58,17 +58,29 @@ MyFloat MyFloat::operator+(const MyFloat &rhs) const
   */
 
   /*
-  ./fpArithmetic.out 7 - 7
-
- float: 7
-float in bits: 01000000111000000000000000000000
+ float: -1.6760024664108641445636749267578125e-05
+float in bits: 10110111100011001001011111100001
 
 Unpacked values: 
-Sign: 0
-Exponent: 129
+Sign: 1
+Exponent: 111
 Mantissa: 
- 11000000000000000000000
-111000000000000000000000
+00011001001011111100001
+101110011010000000
+
+
+float: -3.45754898489758488722145557403564453125e-07
+float in bits: 10110100101110011010000000110001
+
+Unpacked values: 
+Sign: 1
+Exponent: 105
+Mantissa: 01110011010000000110001
+
+100011001001011111100001 m 1
+101110011010000000110001 m 2
+      101110011010000000
+100010011011000101100001
 
   */
   if (sign == rhs.sign) //addition
@@ -102,25 +114,28 @@ Mantissa:
     result.mantissa = mantissa_sum & (~(1 << 23)); // Drop the implicit 1
     result.sign = sign;                            
   }
-  else
-  { // diff signs
+  else // subtraction
+  { 
+    unsigned int mantissaOld;
+
     
     if ((exponent == rhs.exponent) && (mantissa == rhs.mantissa)){ //check if they are the equal but opposite
       return 0;
     }
-
+    
     // same as above
     int diff = exponent - rhs.exponent;
     if (diff >= 0)
     {
       // exp > rhs.exp, so rhs mantissa shifts right
+      mantissaOld = mantissa2;
       mantissa2 >>= diff; // align this mantissa
       result.exponent = exponent;
     }
     else if (diff < 0)
     {
       // rhs.exp > exp, so this.mantissa shifts right
-
+      mantissaOld = mantissa1;
       int absDiff = -diff; // make positive
       mantissa1 >>= absDiff;
 
@@ -144,7 +159,7 @@ Mantissa:
     A borrow occurs when the most significant bit shifted out of the smaller number's mantissa is a 1.
     If this happens you will need to subtract an additional 1 from the difference between the two mantissas.
     */
-    if ((mantissa2 & (1 << (diff - 1))) == 1)
+    if (mantissaOld && (1 << (diff - 1)))
     {
       mantissa_diff -= 1;
     }
@@ -227,14 +242,14 @@ void MyFloat::unpackFloat(float f)
       [f] "r"(f) :                                                     // copy float into eax
       "%ecx");
 
-  std::cout << "\n\nfloat: " << f << std::endl;
-  std::bitset<32> floatBits(*reinterpret_cast<unsigned int *>(&f));
-  std::cout << "float in bits: " << floatBits << std::endl;
-  std::cout << "\nUnpacked values: " << std::endl;
-  std::cout << "Sign: " << sign << std::endl;
-  std::cout << "Exponent: " << exponent << std::endl;
-  std::bitset<23> mantissaBits(mantissa);
-  std::cout << "Mantissa: " << mantissaBits << std::endl;
+  // std::cout << "\n\nfloat: " << f << std::endl;
+  // std::bitset<32> floatBits(*reinterpret_cast<unsigned int *>(&f));
+  // std::cout << "float in bits: " << floatBits << std::endl;
+  // std::cout << "\nUnpacked values: " << std::endl;
+  // std::cout << "Sign: " << sign << std::endl;
+  // std::cout << "Exponent: " << exponent << std::endl;
+  // std::bitset<23> mantissaBits(mantissa);
+  // std::cout << "Mantissa: " << mantissaBits << std::endl;
 
 } // unpackFloat
 
