@@ -60,30 +60,27 @@ MyFloat MyFloat::operator+(const MyFloat &rhs) const
   */
 
   /*
- float: 2873.7607421875
-float in bits: 01000101001100111001110000101100
+ float: -60416166759648602320321602926466301952
+float in bits: 11111110001101011100111011101100
 
-Unpacked values:
-Sign: 0
-Exponent: 138
-Mantissa: 01100111001110000101100
+Unpacked values: 
+Sign: 1
+Exponent: 252
+Mantissa: 01101011100111011101100
 
 
-float: 5629.39501953125
-float in bits: 01000101101011111110101100101001
+float: -5.240431302165641015609381281487808830918006325454304174702130185437010112536881933920085430145263671875e-35
+float in bits: 10000110100010110101000010000111
 
-Unpacked values:
-Sign: 0
-Exponent: 139
-Mantissa: 01011111110101100101001
-2873.7607421875 - 5629.39501953125
+Unpacked values: 
+Sign: 1
+Exponent: 13
+Mantissa: 00010110101000010000111
 
-101100111001110000101100 :M1
+101101011100111011101100 :M1
+100010110101000010000111 :M2
+101101011100111011101100
 
-101011111110101100101001 :M2
-
- 10110011100111000010110 :M1 (smaller so shifted)
- 10101100001110100010011
   */
   if (sign == rhs.sign) // addition
   {
@@ -132,7 +129,13 @@ Mantissa: 01011111110101100101001
     {
       // exp > rhs.exp, so rhs mantissa shifts right
       mantissaOld = mantissa2;
-      mantissa2 >>= absDiff; // align this mantissa
+      if (absDiff > 31){
+        mantissa2 = 0;
+        mantissaOld = 0;
+
+      } else {
+        mantissa2 >>= absDiff; // align this mantissa
+      }
       result.exponent = exponent;
     }
     else if (diff < 0)
@@ -140,8 +143,12 @@ Mantissa: 01011111110101100101001
       // rhs.exp > exp, so this.mantissa shifts right
       mantissaOld = mantissa1;
       absDiff = -diff; // make positive
-      mantissa1 >>= absDiff;
-
+      if (absDiff > 31){
+        mantissa1 = 0;
+        mantissaOld = 0;
+      } else {
+        mantissa1 >>= absDiff;
+      }
       result.exponent = rhs.exponent;
     }
 

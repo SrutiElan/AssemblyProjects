@@ -22,6 +22,7 @@
       MyFloat operator-(const MyFloat& rhs) const; 
     
     	//comparison
+      
     	bool operator==(const float rhs) const;
     
     private:
