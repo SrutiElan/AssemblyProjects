@@ -115,7 +115,7 @@ MyFloat MyFloat::operator+(const MyFloat &rhs) const
   else
   { // diff signs
 
-    //same as above
+    // same as above
     int diff = exponent - rhs.exponent;
     if (diff >= 0)
     {
@@ -133,7 +133,6 @@ MyFloat MyFloat::operator+(const MyFloat &rhs) const
       result.exponent = rhs.exponent;
     }
 
-
     // make sure mantissa1 is the larger magnitude
     if (mantissa1 < mantissa2)
     {
@@ -147,9 +146,8 @@ MyFloat MyFloat::operator+(const MyFloat &rhs) const
 
     unsigned int mantissa_diff = mantissa1 - mantissa2;
 
-   
     /*
-    A borrow occurs when the most significant bit shifted out of the smaller number's mantissa is a 1. 
+    A borrow occurs when the most significant bit shifted out of the smaller number's mantissa is a 1.
     If this happens you will need to subtract an additional 1 from the difference between the two mantissas.
     */
     if ((mantissa2 & (1 << (diff - 1))) == 1)
@@ -173,12 +171,33 @@ MyFloat MyFloat::operator-(const MyFloat &rhs) const
 {
   MyFloat temp = rhs;
   temp.sign = -1;
-  return *this + temp; 
+  return *this + temp;
 }
 
 bool MyFloat::operator==(const float rhs) const
 {
-  return false; // this is just a stub so your code will compile
+  unsigned int rhsSign, rhsExp, rhsMant;
+  __asm__(
+      // read 1 bit from float starting at bit 31, put the result in sign
+      "movb $1, %%ch;"
+      "movb $31, %%cl;"
+      "bextr %%ecx,%[f], %[sign];"
+
+      // read 8 bits from float starting at bit 23, put result in exponent
+      "movb $8, %%ch;"
+      "movb $23, %%cl;"
+      "bextr %%ecx,%[f], %[exp];"
+
+      // read 23 bits from float starting at bit 0, put result in exponent
+      "movb $23, %%ch;"
+      "movb $0, %%cl;"
+      "bextr %%ecx,%[f], %[mant];"
+
+      :
+      [sign] "=r"(rhsSign), [exp] "=r"(rhsExp), [mant] "=r"(rhsMant) : // outputs
+      [f] "r"(rhs) :                                                   // copy float into eax
+      "%ecx");
+  return (sign == rhsSign) && (exponent == rhsExp) && (mantissa == rhsMant);
 }
 
 void MyFloat::unpackFloat(float f)
