@@ -30,8 +30,14 @@ ostream &operator<<(std::ostream &strm, const MyFloat &f)
 MyFloat MyFloat::operator+(const MyFloat &rhs) const
 {
   MyFloat result;
-  unsigned int mantissa1 = mantissa | (1 << 23); // Add the implicit 1
-  unsigned int mantissa2 = rhs.mantissa | (1 << 23);
+  unsigned int mantissa1 = 0;
+  unsigned int mantissa2 = 0;
+  if (mantissa != 0 || sign != 0 || exponent !=0 ) { //if not 0
+    mantissa1 = mantissa | (1 << 23); // Add the implicit 1
+  }
+  if (rhs.mantissa != 0 || rhs.sign != 0 || rhs.exponent !=0 ) { //if not 0
+    mantissa2 = rhs.mantissa | (1 << 23);
+  }
 
   /*
   compare exponents, the smaller one will be decreased to preserve precision
@@ -52,36 +58,20 @@ MyFloat MyFloat::operator+(const MyFloat &rhs) const
   */
 
   /*
-  ./fpArithmetic.out 1.25 + 3.75
+  ./fpArithmetic.out 7 - 7
 
- float: 1736217600 : 1.10011101111100100101000 x 2^30
- float in bits: 01001110110011101111100100101000
+ float: 7
+float in bits: 01000000111000000000000000000000
 
- Unpacked values:
- Sign: 0
- Exponent: 157
- Mantissa: 10011101111100100101000
-
-
- float: 0.5 : 1.0 x 2^-1
- float in bits: 00111111000000000000000000000000
-
- Unpacked values:
- Sign: 0
- Exponent: 126
- Mantissa: 00000000000000000000000
- 1736217600 + 0.5
- My Add: 1
-
-  110011101111100100101000 :Mant 1
-  1111100100101000000000000000000
-  100000000000000000000000 :mant 2
-
-  1001100000000000000000000
-   100110000000000000000000
+Unpacked values: 
+Sign: 0
+Exponent: 129
+Mantissa: 
+ 11000000000000000000000
+111000000000000000000000
 
   */
-  if (sign == rhs.sign)
+  if (sign == rhs.sign) //addition
   {
 
     int diff = exponent - rhs.exponent;
@@ -110,10 +100,14 @@ MyFloat MyFloat::operator+(const MyFloat &rhs) const
     }
 
     result.mantissa = mantissa_sum & (~(1 << 23)); // Drop the implicit 1
-    result.sign = sign;                            // Assume same sign for simplicity
+    result.sign = sign;                            
   }
   else
   { // diff signs
+    
+    if ((exponent == rhs.exponent) && (mantissa == rhs.mantissa)){ //check if they are the equal but opposite
+      return 0;
+    }
 
     // same as above
     int diff = exponent - rhs.exponent;
@@ -163,6 +157,9 @@ MyFloat MyFloat::operator+(const MyFloat &rhs) const
     }
 
     result.mantissa = mantissa_diff & (~(1 << 23)); // Drop implicit 1
+    if (result.mantissa ==0 && result.exponent == 0){ // if result = 0
+    result.sign = 0;
+    }
   }
   return result;
 }
@@ -170,7 +167,7 @@ MyFloat MyFloat::operator+(const MyFloat &rhs) const
 MyFloat MyFloat::operator-(const MyFloat &rhs) const
 {
   MyFloat temp = rhs;
-  temp.sign = -1;
+  temp.sign = !rhs.sign;
   return *this + temp;
 }
 
