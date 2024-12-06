@@ -32,10 +32,12 @@ MyFloat MyFloat::operator+(const MyFloat &rhs) const
   MyFloat result;
   unsigned int mantissa1 = 0;
   unsigned int mantissa2 = 0;
-  if (mantissa != 0 || sign != 0 || exponent !=0 ) { //if not 0
+  if (mantissa != 0 || exponent != 0)
+  {                                   // if not 0
     mantissa1 = mantissa | (1 << 23); // Add the implicit 1
   }
-  if (rhs.mantissa != 0 || rhs.sign != 0 || rhs.exponent !=0 ) { //if not 0
+  if (rhs.mantissa != 0 || rhs.exponent != 0)
+  { // if not 0
     mantissa2 = rhs.mantissa | (1 << 23);
   }
 
@@ -58,32 +60,32 @@ MyFloat MyFloat::operator+(const MyFloat &rhs) const
   */
 
   /*
- float: -1.6760024664108641445636749267578125e-05
-float in bits: 10110111100011001001011111100001
+ float: 2873.7607421875
+float in bits: 01000101001100111001110000101100
 
-Unpacked values: 
-Sign: 1
-Exponent: 111
-Mantissa: 
-00011001001011111100001
-101110011010000000
+Unpacked values:
+Sign: 0
+Exponent: 138
+Mantissa: 01100111001110000101100
 
 
-float: -3.45754898489758488722145557403564453125e-07
-float in bits: 10110100101110011010000000110001
+float: 5629.39501953125
+float in bits: 01000101101011111110101100101001
 
-Unpacked values: 
-Sign: 1
-Exponent: 105
-Mantissa: 01110011010000000110001
+Unpacked values:
+Sign: 0
+Exponent: 139
+Mantissa: 01011111110101100101001
+2873.7607421875 - 5629.39501953125
 
-100011001001011111100001 m 1
-101110011010000000110001 m 2
-      101110011010000000
-100010011011000101100001
+101100111001110000101100 :M1
 
+101011111110101100101001 :M2
+
+ 10110011100111000010110 :M1 (smaller so shifted)
+ 10101100001110100010011
   */
-  if (sign == rhs.sign) //addition
+  if (sign == rhs.sign) // addition
   {
 
     int diff = exponent - rhs.exponent;
@@ -112,31 +114,32 @@ Mantissa: 01110011010000000110001
     }
 
     result.mantissa = mantissa_sum & (~(1 << 23)); // Drop the implicit 1
-    result.sign = sign;                            
+    result.sign = sign;
   }
   else // subtraction
-  { 
+  {
     unsigned int mantissaOld;
 
-    
-    if ((exponent == rhs.exponent) && (mantissa == rhs.mantissa)){ //check if they are the equal but opposite
+    if ((exponent == rhs.exponent) && (mantissa == rhs.mantissa))
+    { // check if they are the equal but opposite
       return 0;
     }
-    
+
     // same as above
     int diff = exponent - rhs.exponent;
+    int absDiff = diff;
     if (diff >= 0)
     {
       // exp > rhs.exp, so rhs mantissa shifts right
       mantissaOld = mantissa2;
-      mantissa2 >>= diff; // align this mantissa
+      mantissa2 >>= absDiff; // align this mantissa
       result.exponent = exponent;
     }
     else if (diff < 0)
     {
       // rhs.exp > exp, so this.mantissa shifts right
       mantissaOld = mantissa1;
-      int absDiff = -diff; // make positive
+      absDiff = -diff; // make positive
       mantissa1 >>= absDiff;
 
       result.exponent = rhs.exponent;
@@ -159,7 +162,8 @@ Mantissa: 01110011010000000110001
     A borrow occurs when the most significant bit shifted out of the smaller number's mantissa is a 1.
     If this happens you will need to subtract an additional 1 from the difference between the two mantissas.
     */
-    if (mantissaOld && (1 << (diff - 1)))
+
+    if (mantissaOld & (1 << (absDiff - 1)))
     {
       mantissa_diff -= 1;
     }
@@ -172,8 +176,9 @@ Mantissa: 01110011010000000110001
     }
 
     result.mantissa = mantissa_diff & (~(1 << 23)); // Drop implicit 1
-    if (result.mantissa ==0 && result.exponent == 0){ // if result = 0
-    result.sign = 0;
+    if (result.mantissa == 0 && result.exponent == 0)
+    { // if result = 0
+      result.sign = 0;
     }
   }
   return result;
