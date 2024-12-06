@@ -30,87 +30,150 @@ ostream &operator<<(std::ostream &strm, const MyFloat &f)
 MyFloat MyFloat::operator+(const MyFloat &rhs) const
 {
   MyFloat result;
-  uint64_t mantissa1 = mantissa | (1<<23); // Add the implicit 1
-  uint64_t mantissa2 = rhs.mantissa | (1<<23);
- 
+  unsigned int mantissa1 = mantissa | (1 << 23); // Add the implicit 1
+  unsigned int mantissa2 = rhs.mantissa | (1 << 23);
+
   /*
-  compare exponents, the larger one will be decreased to preserve precision
-  ex) 3.25 * 10^2 + 4.3 * 10^-1 you dont want to make 0.0043 x 10^2 bc the last digits might be cut off
-  3.25 * 10^2  =>  3250 * 10^-1 (shift to left by 3)
-  3250 * 10^-1 + 4.3 * 10 ^-1 
-  = (3250 + 4.3) * 10^-1 (same exponent)
+  compare exponents, the smaller one will be decreased to preserve precision
+  ex) 3.25 * 10^2 + 4.3 * 10^-1
+  4.3 * 10^-1 => 0.0043 * 10^2 (shift to right by 3, since we are incr exponent, shr decr )
+  3.25 * 10^2 + 0.0043 * 10^2
+  = (3.25 + 0.0043) * 10^2 (same exponent)
 
   if  3.25 * 10^2 + 4.3 * 10^-1
   2 + 1 = 3 > 0 so this exp is greater
-  need to shift mantissa1 (left by diff)
-  result exponent = rhs exponent 
+  need to shift mantissa2 (right by diff)
+  result exponent = this exponent
 
   if 4.3 * 10^-1 + 3.25 * 10^2
   -1 - 2 = -3 < 0, so rhs exp is greater
-  need to shift mantissa2 (left by -diff)
-  result exponent = this exponent
+  need to shift mantissa1 (right by -diff)
+  result exponent = rhs exponent
   */
 
- /*
- ./fpArithmetic.out 1.25 + 3.75
+  /*
+  ./fpArithmetic.out 1.25 + 3.75
 
-float: 1736217600 : 1.10011101111100100101000 x 2^30
-float in bits: 01001110110011101111100100101000
+ float: 1736217600 : 1.10011101111100100101000 x 2^30
+ float in bits: 01001110110011101111100100101000
 
-Unpacked values: 
-Sign: 0
-Exponent: 157
-Mantissa: 10011101111100100101000
+ Unpacked values:
+ Sign: 0
+ Exponent: 157
+ Mantissa: 10011101111100100101000
 
 
-float: 0.5 : 1.0 x 2^-1
-float in bits: 00111111000000000000000000000000
+ float: 0.5 : 1.0 x 2^-1
+ float in bits: 00111111000000000000000000000000
 
-Unpacked values: 
-Sign: 0
-Exponent: 126
-Mantissa: 00000000000000000000000
-1736217600 + 0.5
-My Add: 1
+ Unpacked values:
+ Sign: 0
+ Exponent: 126
+ Mantissa: 00000000000000000000000
+ 1736217600 + 0.5
+ My Add: 1
 
- 110011101111100100101000 :Mant 1
- 1111100100101000000000000000000
- 100000000000000000000000 :mant 2
+  110011101111100100101000 :Mant 1
+  1111100100101000000000000000000
+  100000000000000000000000 :mant 2
 
- 1001100000000000000000000
-  100110000000000000000000
- */
+  1001100000000000000000000
+   100110000000000000000000
+
+  */
+  if (sign == rhs.sign)
+  {
+
     int diff = exponent - rhs.exponent;
-    if (diff >= 0) {
-      // exp > rhs.exp, so this mantissa shifts
-        mantissa1 <<= diff; // align this mantissa
-        result.exponent = rhs.exponent;
+    if (diff >= 0)
+    {
+      // exp > rhs.exp, so rhs mantissa shifts right
+      mantissa2 >>= diff; // align this mantissa
+      result.exponent = exponent;
+    }
+    else if (diff < 0)
+    {
+      // rhs.exp > exp, so this.mantissa shifts right
 
-    } else if (diff < 0) {
-      // rhs.exp > exp, so rhs.mantissa shifts
-      
-        int absDiff = -diff; // Make positive      
-        mantissa2 <<= absDiff;
-       
-        result.exponent = exponent;
+      int absDiff = -diff; // make positive
+      mantissa1 >>= absDiff;
+
+      result.exponent = rhs.exponent;
     }
 
-    uint64_t mantissa_sum = mantissa1 + mantissa2;
+    unsigned int mantissa_sum = mantissa1 + mantissa2;
     // if the 24th bit has a 1 then the mantissa overflowed
-    while (mantissa_sum >= (1<<24)) { // check for carry
-        mantissa_sum >>= 1;
-        result.exponent++;
+    while (mantissa_sum >= (1 << 24))
+    { // check for carry
+      mantissa_sum >>= 1;
+      result.exponent++;
     }
 
-    result.mantissa = mantissa_sum & (~(1<<23)); // Drop the implicit 1
-    result.sign = sign; // Assume same sign for simplicity
-    return result;
+    result.mantissa = mantissa_sum & (~(1 << 23)); // Drop the implicit 1
+    result.sign = sign;                            // Assume same sign for simplicity
   }
+  else
+  { // diff signs
+
+    //same as above
+    int diff = exponent - rhs.exponent;
+    if (diff >= 0)
+    {
+      // exp > rhs.exp, so rhs mantissa shifts right
+      mantissa2 >>= diff; // align this mantissa
+      result.exponent = exponent;
+    }
+    else if (diff < 0)
+    {
+      // rhs.exp > exp, so this.mantissa shifts right
+
+      int absDiff = -diff; // make positive
+      mantissa1 >>= absDiff;
+
+      result.exponent = rhs.exponent;
+    }
+
+
+    // make sure mantissa1 is the larger magnitude
+    if (mantissa1 < mantissa2)
+    {
+      std::swap(mantissa1, mantissa2);
+      result.sign = rhs.sign; // result takes the sign of the larger magnitude
+    }
+    else
+    {
+      result.sign = sign;
+    }
+
+    unsigned int mantissa_diff = mantissa1 - mantissa2;
+
+   
+    /*
+    A borrow occurs when the most significant bit shifted out of the smaller number's mantissa is a 1. 
+    If this happens you will need to subtract an additional 1 from the difference between the two mantissas.
+    */
+    if ((mantissa2 & (1 << (diff - 1))) == 1)
+    {
+      mantissa_diff -= 1;
+    }
+
+    // normalize if necessary
+    while ((mantissa_diff & (1 << 23)) == 0 && mantissa_diff != 0)
+    {
+      mantissa_diff <<= 1;
+      result.exponent--;
+    }
+
+    result.mantissa = mantissa_diff & (~(1 << 23)); // Drop implicit 1
+  }
+  return result;
+}
 
 MyFloat MyFloat::operator-(const MyFloat &rhs) const
 {
-
-  return *this; // you don't have to return *this. it's just here right now so it will compile
+  MyFloat temp = rhs;
+  temp.sign = -1;
+  return *this + temp; 
 }
 
 bool MyFloat::operator==(const float rhs) const
@@ -147,9 +210,9 @@ void MyFloat::unpackFloat(float f)
       [sign] "=r"(sign), [exp] "=r"(exponent), [mant] "=r"(mantissa) : // outputs
       [f] "r"(f) :                                                     // copy float into eax
       "%ecx");
- 
+
   std::cout << "\n\nfloat: " << f << std::endl;
-  std::bitset<32> floatBits(*reinterpret_cast<unsigned int*>(&f));
+  std::bitset<32> floatBits(*reinterpret_cast<unsigned int *>(&f));
   std::cout << "float in bits: " << floatBits << std::endl;
   std::cout << "\nUnpacked values: " << std::endl;
   std::cout << "Sign: " << sign << std::endl;
@@ -170,18 +233,17 @@ float MyFloat::packFloat() const
   */
 
   float f = 0;
-  __asm__ (
-    "mov %[sign], %[f];" // load sign
-    "shl $31, %[f];" // shift left by 31 bits
-    "mov %[exp], %%ecx;"
-    "shl $23, %%ecx;" //shift exponent left by 23 bits
-    "or %%ecx, %[f];" 
-    "or %[mant], %[f]" //combine mantissa
+  __asm__(
+      "mov %[sign], %[f];" // load sign
+      "shl $31, %[f];"     // shift left by 31 bits
+      "mov %[exp], %%ecx;"
+      "shl $23, %%ecx;" // shift exponent left by 23 bits
+      "or %%ecx, %[f];"
+      "or %[mant], %[f]" // combine mantissa
 
-    : [f]"=r" (f)
-    : [sign]"r"(sign), [exp] "r" (exponent), [mant] "r" (mantissa)
-     : "ecx" 
-  );
+      : [f] "=r"(f)
+      : [sign] "r"(sign), [exp] "r"(exponent), [mant] "r"(mantissa)
+      : "ecx");
 
   return f;
 } // packFloat
